@@ -12,8 +12,8 @@ class Dino(pygame.sprite.Sprite):
 
         self.running_sprites = []
 
-        self.running_sprites.append(pygame.image.load("assets/Dino1.png"))
-        self.running_sprites.append(pygame.image.load("assets/Dino2.png"))
+        self.running_sprites.append(pygame.transform.scale(pygame.image.load("assets/Dino1.png"),(80,100)))
+        self.running_sprites.append(pygame.transform.scale(pygame.image.load("assets/Dino2.png"),(80,100)))
 
         self.x = x_pos 
         self.y= y_pos
@@ -21,17 +21,47 @@ class Dino(pygame.sprite.Sprite):
         self.current_image = 0
         self.image = self.running_sprites[self.current_image]
         self.rect = self.image.get_rect(center = (self.x,self.y))
-        self.velocity = 50
 
+        self.velocity = 50
+        self.gravity = 4.5
+        self.ducking = False
+
+        self.ducking_sprites = []
+        self.ducking_sprites.append(pygame.transform.scale(pygame.image.load("assets/DinoDucking1.png"), (110,60)))
+        self.ducking_sprites.append(pygame.transform.scale(pygame.image.load("assets/DinoDucking2.png"), (110,60)))
+    
     def animate(self):
-        self.current_image+=1
-        if self.current_image>1:
+        self.current_image+=0.075
+        if self.current_image>2:
             self.current_image=0
         
-        self.image = self.running_sprites[self.current_image]
+        self.image = self.running_sprites[int(self.current_image)]
+
+        if self.ducking:
+            self.image = self.ducking_sprites[int(self.current_image)]
+        else:
+            self.image = self.running_sprites[int(self.current_image)]
     
     def update(self):
         self.animate()
+        self.apply_gravity()
+
+    def duck(self):
+        self.ducking = True
+        self.rect.centery = 400
+
+    def unduck(self):
+        self.ducking = False
+        self.rect.centery = 360
+
+    def apply_gravity(self):
+        if self.rect.centery<= 360:
+            self.rect.centery += self.gravity
+
+    def jump(self):
+        if self.rect.centery >= 360:
+            while self.rect.centery - self.velocity > 40:
+                self.rect.centery -= 1
 
 
 #Variables
@@ -51,10 +81,18 @@ dino_group = pygame.sprite.GroupSingle()
 
 # Objects
 
-dinosaur = Dino (50,360)
+dinosaur = Dino (75,360)
 dino_group.add(dinosaur)
 
 while True:
+    keys= pygame.key.get_pressed()
+
+    if keys[pygame.K_DOWN]:
+        dinosaur.duck()
+    else:
+        if dinosaur.ducking:
+            dinosaur.unduck()
+
     for event in pygame.event.get():
         if event .type==pygame.QUIT:
             pygame.quit()
